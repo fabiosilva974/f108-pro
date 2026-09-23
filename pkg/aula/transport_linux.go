@@ -32,8 +32,16 @@ func openTransport() (Transport, error) {
 		return nil, fmt.Errorf("opening device: %w", err)
 	}
 	if dev == nil {
+		// Try wireless dongle
+		dev, err = ctx.OpenDeviceWithVIDPID(0x05AC, 0x024F)
+		if err != nil {
+			ctx.Close()
+			return nil, fmt.Errorf("opening dongle device: %w", err)
+		}
+	}
+	if dev == nil {
 		ctx.Close()
-		return nil, fmt.Errorf("keyboard not found (VID=%04x PID=%04x)", VendorID, ProductID)
+		return nil, fmt.Errorf("keyboard not found (USB VID=%04x PID=%04x, Dongle VID=05ac PID=024f)", VendorID, ProductID)
 	}
 
 	if err := dev.SetAutoDetach(true); err != nil {
